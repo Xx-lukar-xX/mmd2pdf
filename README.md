@@ -9,18 +9,18 @@ Powerpointでスライドを作成する際、GUIでのフローチャートが�
 ```plaintext
 graph TD
     a["hoge"]
-    a --> "hoge"
-    b["hoge"] --> "bar"
-    a -- b --> "bar"
+    a --> hoge
+    b["hoge"] --> bar
+    a -- b --> bar
 ```
 
 結果イメージ
 ```mermaid
 graph TD
     a["hoge"]
-    a --> "hoge"
-    b["hoge"] --> "bar"
-    a -- b --> "bar"
+    a --> hoge
+    b["hoge"] --> bar
+    a -- b --> bar
 ```
 
 ほか、graph LRも使用可能。
