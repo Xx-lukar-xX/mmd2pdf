@@ -14,6 +14,15 @@ graph TD
     a -- b --> "bar"
 ```
 
+結果イメージ
+```mermaid
+graph TD
+    a["hoge"]
+    a --> "hoge"
+    b["hoge"] --> "bar"
+    a -- b --> "bar"
+```
+
 ほか、graph LRも使用可能。
 
 ### 不可なパターン
