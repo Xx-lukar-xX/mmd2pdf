@@ -1,0 +1,10 @@
+[package]
+name = "mmd2pdf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+printpdf = "0.7.0"
+clap = "2.33"
+nom = "8.0.0"
+regex = "1.11.1"

@@ -1,0 +1,25 @@
+graph TD
+	start
+  キャラを選択
+  finish
+  u1{{自分のキャラか}}
+  u2{{is_alive}}
+  u3{{選択を入力}}
+  can_move
+  can_attack
+  start-->キャラを選択-->u1
+  u1--True-->u2
+  u1--False-->キャラを選択
+  u2--True-->u3
+  u2--False-->キャラを選択
+  u3--1-->can_move
+  u3--2-->can_attack
+  u3--3-->can_special
+  u3--4-->キャラを選択
+  can_move--True--> move --> finish
+  can_move--False-->u3
+  can_attack--True--> attack --> finish
+  can_attack--False-->u3
+  can_special--True--> special_action --> finish
+  can_special--False-->u3
+ 
