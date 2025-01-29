@@ -29,3 +29,23 @@ graph TD
 
 基本、簡単なフローチャート以外の出力は不可
 例: `hoge --> huge --> foo`(3つ並行で連結を記述)`
+
+## 特徴
+
+graph LRと宣言すると、mermaidでは横書きになるが、スライドのフローチャートには日本語を載せたいため、文字が縦書きになるように
+
+## 使用方法
+
+Once you have cloned this and got into the directory, try the following:
+
+[1]
+
+```sh
+cargo build --release
+```
+
+[2]
+
+```sh
+./target/release/mmd2pdf INPUT_FILE OUTPUT_FILE
+```
