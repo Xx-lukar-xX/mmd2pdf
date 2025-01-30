@@ -1,5 +1,7 @@
 // 文字、座標などからpdfファイルを生成する
 
+use crate::parse_args::Config;
+use crate::mmdparser::Element;
 use printpdf::*;
 use std::fs::File;
 
@@ -8,8 +10,8 @@ pub fn makepdf() {
         PdfDocument::new("PDF_Document_title", Mm(247.0), Mm(210.0), "Layer 1");
     let current_layer = doc.get_page(page1).get_layer(layer1);
 
-    let text = "Lorem ipsum";
-    let text2 = "unicode: стуфхfцчшщъыьэюя";
+    let text = "あLaaoremああああああ ipsum";
+    let text2 = "これ見えますかunicode: стуфあｓｄまおｓｋどあｓхfцчшщъыьэюя";
 
     let font = doc
         .add_external_font(File::open("assets/fonts/Roboto-Medium.ttf").unwrap())

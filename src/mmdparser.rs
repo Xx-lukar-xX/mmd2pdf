@@ -1,18 +1,22 @@
 // markdown記法のmermaidをパースするためのモジュール
-// これから本気でやるなら、nomを使う
+// これから本気でやるなら、nomを使う(できるだけ正規表現のみを武器に自力で書きたい)
 
 use regex::Regex;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Element {
     pub name: String,
     pub text: String,
     pub shape: String,
-    pub to: Option<Vec<(String, Option<String>)>>, // 一つ目がノード接続先、二つ目がが中間にはさむテキスト(条件分岐とかに使う)
-    pub from: Option<Vec<String>>, // toだけじゃきつかったので、fromも追加
+    pub to: Option<Vec<(String, Option<String>)>>, // 一つ目がノード接続先、二つ目がが中間にはさむテキスト(フローチャートにおいては条件分岐の明示に使う)
+    pub from: Option<Vec<String>>, // toだけではきつかったので、fromも追加(親ノードを特定するため)
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
 }
 
 pub fn parse_file(filename: &str) -> Result<(String, Vec<Element>), String> {
@@ -29,6 +33,7 @@ pub fn parse_file(filename: &str) -> Result<(String, Vec<Element>), String> {
             graph_type = Some(&line[pos + 5..pos + 7]);
         } else if let Some(pos) = line.find("--") {
             if line[pos + 2..].contains("--") {
+                // hoge -- text --> fuga のような場合の処理
                 let re = Regex::new(r"(\w+)--(\w+)-->(\w+)").unwrap();
                 if let Some(caps) = re.captures(&line) {
                     let from = caps.get(1).unwrap().as_str();
@@ -39,6 +44,7 @@ pub fn parse_file(filename: &str) -> Result<(String, Vec<Element>), String> {
                     pusher(from, to, Some(middle), &mut elements);
                 }
             } else if line.contains("-->") {
+                // hoge --> fuga のような場合の処理
                 let re = Regex::new(r"(\w+)-->(\w+)").unwrap();
                 if let Some(caps) = re.captures(&line) {
                     let from = caps.get(1).unwrap().as_str();
@@ -66,6 +72,9 @@ fn gen_vars(input: &str, elements: &mut Vec<Element>) {
     let name;
     let mut text;
     let mut shape = "rect".to_string();
+    if input.starts_with("%") {
+        return;
+    }
     if let Some(pos) = input.find("[") {
         name = input[..pos].to_string();
         text = input[pos + 1..input.len() - 1].to_string();
@@ -98,6 +107,8 @@ fn gen_vars(input: &str, elements: &mut Vec<Element>) {
             shape,
             to: None,
             from: None,
+            x: 0.0,
+            y: 0.0,
         });
     }
 }
