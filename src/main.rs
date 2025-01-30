@@ -1,8 +1,10 @@
-use mmd2pdf::{coordinate_determiner::*, mmdparser::*, parse_args::*, shape::*};
-use printpdf::*;
+use mmd2pdf::*;
 
 fn main() {
-    let config = get_args();
-    let (graph_type, nodes) = parse_file(&config.filename);
+    let config = parse_args::get_args();
+    let (graph_type, nodes) = mmdparser::parse_file(&config.filename).unwrap();
+    println!("config: {:#?}", config);
     println!("graph_type: {}\nnodes: {:#?}", graph_type, nodes);
+    pdf_generator::makepdf();
+    coordinate_determiner::corrdinate_determine(&nodes);
 }

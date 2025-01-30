@@ -1,17 +1,21 @@
+// markdown記法のmermaidをパースするためのモジュール
+// これから本気でやるなら、nomを使う
+
 use regex::Regex;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Element {
-    name: String,
-    text: String,
-    shape: String,
-    to: Option<Vec<(String, Option<String>)>>, // 一つ目がノード接続先、二つ目がが中間にはさむテキスト(条件分岐とかに使う)
+    pub name: String,
+    pub text: String,
+    pub shape: String,
+    pub to: Option<Vec<(String, Option<String>)>>, // 一つ目がノード接続先、二つ目がが中間にはさむテキスト(条件分岐とかに使う)
+    pub from: Option<Vec<String>>, // toだけじゃきつかったので、fromも追加
 }
 
-pub fn parse_file(filename: &str) -> (String, Vec<Element>) {
+pub fn parse_file(filename: &str) -> Result<(String, Vec<Element>), String> {
     /*
     ファイルをパースする
     出力はグラフの種類(TDまたはLR)と、ノード情報のリスト
@@ -32,25 +36,25 @@ pub fn parse_file(filename: &str) -> (String, Vec<Element>) {
                     let to = caps.get(3).unwrap().as_str();
                     gen_vars(from, &mut elements);
                     gen_vars(to, &mut elements);
-                    to_pusher(from, to, Some(middle), &mut elements);
+                    pusher(from, to, Some(middle), &mut elements);
                 }
             } else if line.contains("-->") {
                 let re = Regex::new(r"(\w+)-->(\w+)").unwrap();
                 if let Some(caps) = re.captures(&line) {
-                    let from = caps.get(1).unwrap().as_str().to_string();
-                    let to = caps.get(2).unwrap().as_str().to_string();
-                    gen_vars(&from, &mut elements);
-                    gen_vars(&to, &mut elements);
-                    to_pusher(&from, &to, None, &mut elements);
+                    let from = caps.get(1).unwrap().as_str();
+                    let to = caps.get(2).unwrap().as_str();
+                    gen_vars(from, &mut elements);
+                    gen_vars(to, &mut elements);
+                    pusher(from, to, None, &mut elements);
                 } else {
+                    // pass
                 }
             }
         } else {
             gen_vars(&line, &mut elements);
         }
     }
-
-    (graph_type.unwrap().to_string(), elements)
+    Ok((graph_type.unwrap().to_string(), elements))
 }
 
 fn gen_vars(input: &str, elements: &mut Vec<Element>) {
@@ -60,7 +64,7 @@ fn gen_vars(input: &str, elements: &mut Vec<Element>) {
      */
 
     let name;
-    let text;
+    let mut text;
     let mut shape = "rect".to_string();
     if let Some(pos) = input.find("[") {
         name = input[..pos].to_string();
@@ -81,6 +85,10 @@ fn gen_vars(input: &str, elements: &mut Vec<Element>) {
         name = input.to_string();
         text = input.to_string();
     }
+    if (text.starts_with('"') && text.ends_with('"')) || (text.starts_with('\'') && text.ends_with('\'')) {
+        text.remove(0);
+        text.pop();
+    }
     if elements.iter_mut().find(|e| e.name == name).is_some() {
         // pass
     } else {
@@ -89,8 +97,14 @@ fn gen_vars(input: &str, elements: &mut Vec<Element>) {
             text,
             shape,
             to: None,
+            from: None,
         });
     }
+}
+
+fn pusher(from: &str, to: &str, text: Option<&str>, elements: &mut Vec<Element>) {
+    to_pusher(from, to, text, elements);
+    from_pusher(from, to, elements);
 }
 
 fn to_pusher(from: &str, to: &str, text: Option<&str>, elements: &mut Vec<Element>) {
@@ -102,7 +116,22 @@ fn to_pusher(from: &str, to: &str, text: Option<&str>, elements: &mut Vec<Elemen
     if from.to.is_none() {
         from.to = Some(Vec::new());
     }
-    from.to.as_mut().unwrap().push((to.to_string(), text.map(|t| t.to_string())));
+    from.to
+        .as_mut()
+        .unwrap()
+        .push((to.to_string(), text.map(|t| t.to_string())));
+}
+
+fn from_pusher(from: &str, to: &str, elements: &mut Vec<Element>) {
+    /*
+    ほぼto_pusherと同じ
+    fromにtoを追加する
+     */
+    let to = elements.iter_mut().find(|e| e.name == to).unwrap();
+    if to.from.is_none() {
+        to.from = Some(Vec::new());
+    }
+    to.from.as_mut().unwrap().push(from.to_string());
 }
 
 fn apply_ignore(lines: Vec<String>) -> Vec<String> {
@@ -142,7 +171,7 @@ fn ignore_whitespace_outside_quotes(input: &str) -> String {
 
 fn open(filename: &str) -> Vec<String> {
     /*
-    ファイルを開いて、中身を返す
+    ファイルを開いて、中身を返す(行またはセパレータ(;)で分割)
      */
     let file = File::open(filename).expect("file not found");
     let reader = BufReader::new(file);
@@ -154,4 +183,32 @@ fn open(filename: &str) -> Vec<String> {
         }
     }
     lines
+}
+
+#[allow(dead_code)]
+fn serialize(elements: Vec<Element>) -> String {
+    /*
+    入力はelementのリスト
+    出力は隣接リストの形にした文字列
+    ノード間のテキストがあれば!--テキスト--!として出力する(もっといい方法あればいいな)
+    */
+    let mut result = String::new();
+    for element in elements {
+        result.push_str(&format!("{}[", element.name));
+        if let Some(to) = element.to {
+            for (to_name, text) in to {
+                if let Some(text) = text {
+                    result.push_str(&format!("!--{}--!{},", text, to_name));
+                } else {
+                    result.push_str(&format!("{},", to_name));
+                }
+            }
+        } else {
+            result.push_str(",");
+        }
+        result.pop();
+        result.push_str("]");
+    }
+    println!("{}", result);
+    result
 }
