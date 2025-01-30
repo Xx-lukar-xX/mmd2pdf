@@ -13,10 +13,10 @@ pub struct Element {
     pub shape: String,
     pub to: Option<Vec<(String, Option<String>)>>, // 一つ目がノード接続先、二つ目がが中間にはさむテキスト(フローチャートにおいては条件分岐の明示に使う)
     pub from: Option<Vec<String>>, // toだけではきつかったので、fromも追加(親ノードを特定するため)
-    pub x: f64,
-    pub y: f64,
-    pub width: f64,
-    pub height: f64,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
 }
 
 pub fn parse_file(filename: &str) -> Result<(String, Vec<Element>), String> {
@@ -94,7 +94,9 @@ fn gen_vars(input: &str, elements: &mut Vec<Element>) {
         name = input.to_string();
         text = input.to_string();
     }
-    if (text.starts_with('"') && text.ends_with('"')) || (text.starts_with('\'') && text.ends_with('\'')) {
+    if (text.starts_with('"') && text.ends_with('"'))
+        || (text.starts_with('\'') && text.ends_with('\''))
+    {
         text.remove(0);
         text.pop();
     }
@@ -109,6 +111,8 @@ fn gen_vars(input: &str, elements: &mut Vec<Element>) {
             from: None,
             x: 0.0,
             y: 0.0,
+            width: 0.0,
+            height: 0.0,
         });
     }
 }
