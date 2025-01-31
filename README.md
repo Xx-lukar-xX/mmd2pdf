@@ -59,7 +59,7 @@ graph LRと宣言すると、mermaidでは横書きになるが、スライド�
 
 ## 使用方法
 
-Once you have cloned this and got into the directory, try the following:
+Once you have cloned this and got into the directory, enter the following:
 
 [1]
 
