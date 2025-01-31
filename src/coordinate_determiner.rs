@@ -4,8 +4,6 @@ use std::collections::HashSet;
 // graph_typeがTDの場合は横書き、LRの場合は縦書き(LRの場合はWIDTHとHEIGHTを入れ替える)
 const MAX_WIDTH: f32 = 100.0;
 const MAX_HEIGHT: f32 = 20.0;
-#[allow(dead_code)]
-const LINE_MAX_CHAR_NUM: usize = 10;
 const MARGIN: f32 = 10.0;
 
 pub fn corrdinate_determine(nodes: Vec<Element>, graph_type: &str) -> Vec<Element> {
@@ -17,8 +15,8 @@ pub fn corrdinate_determine(nodes: Vec<Element>, graph_type: &str) -> Vec<Elemen
     let mut result_nodes: Vec<Element> = Vec::new();
     for (i, group) in priority.iter().enumerate() {
         let (mut x, y) = (
-            0.0 - (group.len() - 1) as f32 * (MAX_WIDTH + MARGIN),
-            0.0 - i as f32 * (MAX_HEIGHT + MARGIN),
+            0.0 - (group.len() - 1) as f32 * (MAX_WIDTH / 2.0 + MARGIN),
+            0.0 - i as f32 * (MAX_HEIGHT / 2.0 + MARGIN),
         );
         let (height, width) = (MAX_HEIGHT, MAX_WIDTH / group.len() as f32);
         for node in group.iter() {

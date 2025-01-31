@@ -9,6 +9,7 @@ pub struct Config {
     pub output: Option<String>,
     pub font: Option<String>,
     pub node_colour: String,
+    pub linebreak: Option<usize>,
 }
 
 pub fn get_args() -> Config {
@@ -49,6 +50,14 @@ pub fn get_args() -> Config {
                 .help("Sets the colour of the node")
                 .takes_value(true)
         )
+        .arg(
+            Arg::with_name("linebreak")
+                .short("b")
+                .long("linebreak")
+                .value_name("LINEBREAK")
+                .help("Sets the number of characters per line")
+                .takes_value(true)
+        )
         .get_matches();
 
     Config {
@@ -68,6 +77,7 @@ pub fn get_args() -> Config {
         },
         font: matches.value_of("font").map(|s| s.to_string()),
         node_colour: node_color(matches.value_of("node_colour").map(|s| s.to_string())),
+        linebreak: matches.value_of("linebreak").map(|s| s.parse().unwrap()),
     }
 }
 
